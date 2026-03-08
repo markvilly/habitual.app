@@ -13,6 +13,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { getCategories, getPopularProducts, getTrendingProducts, searchProducts } from "../../api/products";
 import { Category, Product } from "../../types";
 import { HomeStackParamList } from "../../navigation/types";
+import InterestsSection from "./InterestsSection";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "HomeMain">;
 
@@ -85,10 +86,15 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <ScrollView className="flex-1 bg-background" showsVerticalScrollIndicator={false}>
+      {/* Background ellipse */}
+      <View
+        className="absolute bg-primary rounded-full"
+        style={{ width: 800, height: 800, top: -420, left: -50, zIndex: -1 }}
+      />
       {/* Header */}
-      <View className="bg-primary px-6 pt-14 pb-8">
-        <Text className="text-white text-2xl font-bold">habitual</Text>
-        <Text className="text-purple-200 text-sm mt-0.5">Discover your next obsession</Text>
+      <View className=" px-6 pt-24 pb-8">
+        <Text className="text-gray text-lg capitalize font-bold">suggested for you</Text>
+        <Text className="text-gray text-3xl font-semibold mt-2">Discover what you love</Text>
         <View className="bg-white rounded-xl flex-row items-center px-4 mt-4">
           <Text className="text-text-muted mr-2">🔍</Text>
           <TextInput
@@ -102,7 +108,7 @@ export default function HomeScreen({ navigation }: Props) {
       </View>
 
       {/* Search Results */}
-      {searchQuery.length >= 2 && (
+      {/* {searchQuery.length >= 2 && (
         <View className="px-6 py-4">
           <Text className="text-text-primary font-semibold mb-3">Search Results</Text>
           {searching ? (
@@ -129,27 +135,37 @@ export default function HomeScreen({ navigation }: Props) {
             ))
           )}
         </View>
-      )}
+      )} */}
 
       {/* Categories */}
       {!searchQuery && (
         <>
-          <View className="px-6 pt-6 pb-2 flex-row justify-between items-center">
-            <Text className="text-text-primary font-bold text-lg">Categories</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-6">
-            {categories.map((cat) => (
+          {/* <View className="px-6 pt-2 pb-2 flex-row justify-between items-center">
+            <Text className="text-text-primary font-bold text-lg">Your Interests</Text>
+          </View> */}
+          <InterestsSection categories={categories} onProductPress={goToProduct} />
+
+          {/* Quick action cards */}
+          <View className="px-5 pb-6 flex-row flex-wrap gap-3">
+            {[
+              { label: "Shopping habits and interests", bg: "bg-error" },
+              { label: "Today's trending items", bg: "bg-success" },
+              { label: "Incoming!\nFlash deals", bg: "bg-secondary" },
+              { label: "Browse our categories", bg: "bg-warning" },
+            ].map((card) => (
               <TouchableOpacity
-                key={cat.id}
-                className="items-center mr-4"
+                key={card.label}
+                className={`${card.bg} rounded-3xl p-5 justify-between`}
+                style={{ width: "47%", aspectRatio: 1 }}
+                activeOpacity={0.85}
               >
-                <View className="w-16 h-16 bg-purple-100 rounded-2xl items-center justify-center mb-1">
-                  <Text className="text-2xl">🛍️</Text>
+                <Text className="text-white font-bold text-lg leading-tight">{card.label}</Text>
+                <View className="self-end bg-white rounded-full w-10 h-10 items-center justify-center">
+                  <Text className="text-text-primary font-bold text-base">›</Text>
                 </View>
-                <Text className="text-text-secondary text-xs text-center">{cat.name}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
 
           {/* Trending */}
           <View className="px-6 pt-6 pb-2">
