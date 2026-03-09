@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   ScrollView,
   Text,
   TextInput,
@@ -14,30 +13,9 @@ import { getCategories, getPopularProducts, getTrendingProducts, searchProducts 
 import { Category, Product } from "../../types";
 import { HomeStackParamList } from "../../navigation/types";
 import InterestsSection from "./InterestsSection";
+import ProductCard from "../../components/ProductCard";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "HomeMain">;
-
-function ProductCard({ product, onPress }: { product: Product; onPress: () => void }) {
-  return (
-    <TouchableOpacity
-      className="bg-surface rounded-2xl mr-4 w-44 shadow-sm"
-      onPress={onPress}
-    >
-      <Image
-        source={{ uri: product.imageURL || "https://via.placeholder.com/176x120" }}
-        className="w-full h-32 rounded-t-2xl"
-        resizeMode="cover"
-      />
-      <View className="p-3">
-        <Text className="text-text-primary font-semibold text-sm" numberOfLines={1}>
-          {product.name}
-        </Text>
-        <Text className="text-text-secondary text-xs mt-0.5">{product.category?.name}</Text>
-        <Text className="text-primary font-bold text-base mt-1">${product.price}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
 
 export default function HomeScreen({ navigation }: Props) {
   const [trending, setTrending] = useState<Product[]>([]);
@@ -95,7 +73,7 @@ export default function HomeScreen({ navigation }: Props) {
       <View className=" px-6 pt-24 pb-8">
         <Text className="text-gray text-lg capitalize font-bold">suggested for you</Text>
         <Text className="text-gray text-3xl font-semibold mt-2">Discover what you love</Text>
-        <View className="bg-white rounded-xl flex-row items-center px-4 mt-4">
+        {/* <View className="bg-white rounded-xl flex-row items-center px-4 mt-4">
           <Text className="text-text-muted mr-2">🔍</Text>
           <TextInput
             className="flex-1 py-3 text-text-primary"
@@ -104,45 +82,38 @@ export default function HomeScreen({ navigation }: Props) {
             value={searchQuery}
             onChangeText={handleSearch}
           />
-        </View>
+        </View> */}
       </View>
 
       {/* Search Results */}
-      {/* {searchQuery.length >= 2 && (
-        <View className="px-6 py-4">
-          <Text className="text-text-primary font-semibold mb-3">Search Results</Text>
+      {searchQuery.length >= 2 && (
+        <View className="py-4">
+          <Text className="text-text-primary font-semibold mb-3 px-6">Search Results</Text>
           {searching ? (
             <ActivityIndicator color="#6C63FF" />
           ) : searchResults.length === 0 ? (
-            <Text className="text-text-muted">No results found.</Text>
+            <Text className="text-text-muted px-6">No results found.</Text>
           ) : (
-            searchResults.map((p) => (
-              <TouchableOpacity
-                key={p.id}
-                className="flex-row items-center bg-surface rounded-xl p-3 mb-2"
-                onPress={() => goToProduct(p.id)}
-              >
-                <Image
-                  source={{ uri: p.imageURL || "https://via.placeholder.com/48" }}
-                  className="w-12 h-12 rounded-lg mr-3"
-                  resizeMode="cover"
-                />
-                <View className="flex-1">
-                  <Text className="text-text-primary font-medium">{p.name}</Text>
-                  <Text className="text-primary font-bold">${p.price}</Text>
-                </View>
-              </TouchableOpacity>
-            ))
+            <FlatList
+              horizontal
+              data={searchResults}
+              keyExtractor={(p) => String(p.id)}
+              renderItem={({ item }) => (
+                <ProductCard product={item} onPress={() => goToProduct(item.id)} />
+              )}
+              contentContainerStyle={{ paddingHorizontal: 24 }}
+              showsHorizontalScrollIndicator={false}
+            />
           )}
         </View>
-      )} */}
+      )}
 
       {/* Categories */}
-      {!searchQuery && (
+      {!searchQuery && ( 
         <>
-          {/* <View className="px-6 pt-2 pb-2 flex-row justify-between items-center">
+          { <View className="px-6 pt-2 pb-2 flex-row justify-between items-center">
             <Text className="text-text-primary font-bold text-lg">Your Interests</Text>
-          </View> */}
+          </View> }
           <InterestsSection categories={categories} onProductPress={goToProduct} />
 
           {/* Quick action cards */}
@@ -198,6 +169,6 @@ export default function HomeScreen({ navigation }: Props) {
           />
         </>
       )}
-    </ScrollView>
+      </ScrollView>
   );
 }
