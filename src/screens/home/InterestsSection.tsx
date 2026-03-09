@@ -1,39 +1,59 @@
-import React, { useEffect, useState } from "react";
+import { observer } from "mobx-react-lite";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { getProductsByCategory } from "../../api/products";
 import { getDealsByCategory } from "../../api/deals";
+import { useProductStore } from "../../stores";
 import { Category, Deal, Product } from "../../types";
+
+const BASE_URL = "http://localhost:8080";
+function resolveImageURL(url: string | undefined): string {
+  if (!url) return "https://via.placeholder.com/80";
+  if (url.startsWith("http")) return url;
+  return `${BASE_URL}${url}`;
+}
 
 type Props = {
   categories: Category[];
   onProductPress: (productId: number) => void;
 };
 
-export default function InterestsSection({ categories, onProductPress }: Props) {
+const InterestsSection = observer(function InterestsSection({ categories, onProductPress }: Props) {
+  const productStore = useProductStore();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(false);
+  const cache = useRef<Map<number, { products: Product[]; deals: Deal[] }>>(new Map());
+  const [cachedData, setCachedData] = useState<{ products: Product[]; deals: Deal[] } | null>(null);
 
   useEffect(() => {
     if (!categories.length) return;
     const cat = categories[activeIndex];
-    setLoading(true);
-    Promise.all([getProductsByCategory(cat.id), getDealsByCategory(cat.id)])
-      .then(([prods, catDeals]) => {
-        setProducts(prods);
-        setDeals(catDeals);
-      })
-      .finally(() => setLoading(false));
+
+    const hit = cache.current.get(cat.id);
+    if (hit) {
+      setCachedData(hit);
+      return;
+    }
+
+    setCachedData(null);
+    Promise.all([
+      productStore.loadProductsByCategory(cat.id).then(() => productStore.products.slice()),
+      getDealsByCategory(cat.id),
+    ]).then(([products, deals]) => {
+      const entry = { products, deals };
+      cache.current.set(cat.id, entry);
+      setCachedData(entry);
+    });
   }, [activeIndex, categories]);
+
+  const products = cachedData?.products ?? [];
+  const loading = cachedData === null;
 
   if (!categories.length) return null;
 
   const getDeal = (productId: number) =>
-    deals.find((d) => d.product.id === productId);
+    (cachedData?.deals ?? []).find((d: Deal) => d.product.id === productId);
 
   return (
-    <View className="mx-5 mb-6 bg-surface rounded-3xl overflow-hidden shadow-sm">
+    <View className="mx-5 mb-6 bg-surface border border-gray-300 rounded-3xl overflow-hidden shadow-sm">
       {/* Tabs */}
       <ScrollView
         horizontal
@@ -80,16 +100,15 @@ export default function InterestsSection({ categories, onProductPress }: Props) 
               <TouchableOpacity
                 key={product.id}
                 onPress={() => onProductPress(product.id)}
-                className="flex-row items-center mb-4"
+                className="flex-row border border-gray-200 p-2 rounded-xl items-center mb-4"
                 activeOpacity={0.7}
               >
                 {/* Image */}
                 <View className="w-20 h-20 bg-background rounded-2xl overflow-hidden mr-4">
                   <Image
-                    source={{ uri: product.imageURL || "https://via.placeholder.com/80" }}
+                    source={{ uri: resolveImageURL(product.imageURL) }}
                     className="w-full h-full"
-                    resizeMode="cover"
-                  />
+                    resizeMode="contain"                  />
                 </View>
 
                 {/* Info */}
@@ -122,4 +141,6 @@ export default function InterestsSection({ categories, onProductPress }: Props) 
       </View>
     </View>
   );
-}
+});
+
+export default InterestsSection;

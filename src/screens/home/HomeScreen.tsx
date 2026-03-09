@@ -111,9 +111,6 @@ export default function HomeScreen({ navigation }: Props) {
       {/* Categories */}
       {!searchQuery && ( 
         <>
-          { <View className="px-6 pt-2 pb-2 flex-row justify-between items-center">
-            <Text className="text-text-primary font-bold text-lg">Your Interests</Text>
-          </View> }
           <InterestsSection categories={categories} onProductPress={goToProduct} />
 
           {/* Quick action cards */}
