@@ -5,6 +5,12 @@ import { AuthProvider } from "./src/context/AuthContext";
 import { StoreProvider } from "./src/stores";
 import Navigation from "./src/navigation";
 import axios from 'axios';
+import { LogBox } from 'react-native';
+
+
+
+LogBox.ignoreLogs(['SafeAreaView has been deprecated']);
+
 
 axios.interceptors.request.use(request => {
   console.log(`→ ${request.method?.toUpperCase()} ${request.url}`, request.data ?? '');
